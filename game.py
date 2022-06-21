@@ -258,14 +258,6 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
                     currentBlock.x += 1 * BLOCKWIDTH
                     if checkValidPosition(currentBlock, grid, currentFormatedBlock) == False:
                         currentBlock.x -= 1
-                #if event.key == pygame.K_RIGHT:
-                #    currentBlock.x += BLOCKWIDTH
-                #    if checkValidPosition(currentBlock, grid, currentFormatedBlock) == False:
-                #        currentBlock.x -= BLOCKWIDTH
-                #if event.key == pygame.K_RIGHT:
-                #    currentBlock.x += 1 * BLOCKWIDTH
-                #    if checkValidPosition(currentBlock, grid, currentFormatedBlock) == False:
-                #        currentBlock.x -= 1
                 if event.key == pygame.K_LEFT:
                     currentBlock.x -= 1 * BLOCKWIDTH
                     if checkValidPosition(currentBlock, grid, currentFormatedBlock) == False:
