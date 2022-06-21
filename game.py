@@ -1,7 +1,8 @@
+from turtle import right
 import pygame
 import random
 
-pygame.init
+pygame.init()
 curentTime = 0
 clock = pygame.time.Clock()
 
@@ -131,9 +132,9 @@ T = [
         ],
         [
             ".....",
-            "..0..",
-            "..00.",
-            "..0..",
+            ".0..",
+            ".00.",
+            ".0..",
             ".....",
         ],
         [
@@ -164,9 +165,9 @@ O = [
 S = [
         [
             ".....",
-            ".....",
             "..00.",
-            ".00..",
+            ".00.",
+            ".....",
             ".....",
         ],
         [
@@ -203,10 +204,6 @@ def drawGrid(win, rows, columns):
 # To create place to store blocks
 def createSpace(rows, columns, lockedPosition):
     space = [[(0,0,0) for j in range(columns)] for i in range(rows)]
-    # for i in range(rows):   
-        # space.append([])
-        # for j in range(columns):
-            # space[i].append((0,0,0))
     for i in range(len(space)):
         for j in range(len(space[i])):
             if (j, i) in lockedPosition:
@@ -227,14 +224,22 @@ def getShape(block):
     formate = []
     shape = block.shape[ block.rotation % len(block.shape)]
     for i, item in enumerate(shape):
-        for j, ite in enumerate(item):
+        items =list(item)
+        for j, ite in enumerate(items):
             if ite == "0":
-                formate.append((block.x + j, block.y + i))
+                formate.append((block.x + j - 3, block.y + i - 4))
     return formate
 
+def draw_everything(win, grid, rows, columns):
+    win.fill((128,0,0))
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            pygame.draw.rect(win, grid[i][j], (startValue_x + j * BLOCKWIDTH, startValue_y + i * BLOCKWIDTH, BLOCKWIDTH, BLOCKWIDTH))
+    drawGrid(win, rows, columns)
+    pygame.display.update()
 
 # To check position to move or not
-def checkValidPosition(grid, currentFormatedBlock):
+def checkValidPosition(grid,currentBlock):
     position = []
     for i in range(len(grid)):
         position.append([])
@@ -242,29 +247,41 @@ def checkValidPosition(grid, currentFormatedBlock):
             if grid[i][j] ==(0,0,0):
                 position[i].append((j, i))
     position = [j for i in position for j in i]
+    currentFormatedBlock = getShape(currentBlock)
     for item in currentFormatedBlock:
         if (item[0] , item[1] + 1) not in position:
             if item[1] > -1:
                 return False
     return True
 
-def draw_everything(win, grid, rows, columns):
-    win.fill(SKYBLUE)
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            pygame.draw.rect(win, grid[i][j], (startValue_x + j * BLOCKWIDTH, startValue_y + i * BLOCKWIDTH, BLOCKWIDTH, BLOCKWIDTH))
-    drawGrid(win, rows, columns)
-    pygame.display.update()
-
 def deleteRows():
     pass
 
-def checkScore(grid, currentBlock):
-    pass
+def checkScore(win, grid, score):
+    font  = pygame.font.Font("freesansbold.ttf", 24)
+    text = font.render(f"SCORE : {score}", True, (0,0,0),(0, 12, 213) )
+    textRect = text.get_rect()
+    textRect.center = (14 * 30 - 4, 10 * 30)
+    win.blit(text, textRect)
+    pygame.display.update()
 
 # To check if lost or not
-def checkLost():
-    pass
+def checkLost(dict):
+    for i, item in dict:
+        if dict[(5, 0)] != (0,0,0):
+            return True
+    return False
+
+def draw_nextBlock(win, nextBlock, grid):
+    font  = pygame.font.Font("freesansbold.ttf", 24)
+    text = font.render("NEXT SHAPE", True, (0,0,0),(0, 12, 213) )
+    textRect = text.get_rect()
+    textRect.center = (14 * 30 - 4, 4 * 30)
+    win.blit(text, textRect)
+    shape = getShape(nextBlock)
+    for item in shape:
+        print(item)
+        pygame.draw.rect(win, nextBlock.color, ((item[0] + 9) * BLOCKWIDTH, (item[1] + 8) * BLOCKWIDTH, BLOCKWIDTH - 1, BLOCKWIDTH - 1))
 
 # Main Function That Runs First
 def main(win, gameWidth, gameLength, startValue_x, startValue_y):
@@ -276,9 +293,9 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
     lockedPosition = {}
     currentBlock = createBlock(shapes, colors)
     nextBlock = createBlock(shapes, colors)
-    fallSpeed = 0.25 
+    fallSpeed = 0.31 
     fallTime = 0
-    dont = False
+    score = 0
     while running:
         grid =createSpace(ROWS,COLUMNS, lockedPosition)
         currentFormatedBlock = getShape(currentBlock)
@@ -286,8 +303,7 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
         clock.tick()
         if fallTime / 1000 > fallSpeed and currentBlock.fall:
             fallTime = 0
-            # currentBlock.y += 1
-            if checkValidPosition(grid, currentFormatedBlock):
+            if checkValidPosition(grid,currentBlock):
                 currentBlock.y += 1
             else:
                 currentBlock.fall = False
@@ -297,19 +313,19 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     currentBlock.rotation += 1
-                    if not checkValidPosition(grid, currentFormatedBlock):
+                    if not(checkValidPosition(grid,currentBlock)):
                         currentBlock.rotation -=1
                 if event.key == pygame.K_RIGHT:
                     currentBlock.x += 1     
-                    if not checkValidPosition(grid, currentFormatedBlock):
-                        currentBlock.x -= 1     
+                    if not(checkValidPosition(grid,currentBlock)):
+                        currentBlock.x -= 1 
                 if event.key == pygame.K_DOWN:
                     currentBlock.y += 1
-                    if not checkValidPosition(grid, currentFormatedBlock):
+                    if not(checkValidPosition(grid,currentBlock)):
                         currentBlock.y -= 1
                 if event.key == pygame.K_LEFT:
                     currentBlock.x -= 1
-                    if not checkValidPosition(grid, currentFormatedBlock):
+                    if not(checkValidPosition(grid,currentBlock)):
                         currentBlock.x += 1
         for i in range(len(currentFormatedBlock)):
             x, y = currentFormatedBlock[i] 
@@ -319,14 +335,20 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
             if item[1] >= ROWS - 1:
                 currentBlock.fall = False
             # if grid[item[1] + 1][item[0]] != (0, 0, 0):
-                # currentBlock.fall = False
+                # currentBlock.fall = False 
         if not currentBlock.fall:
+            score += 1
+            checkScore(win, grid, score)
             for item in currentFormatedBlock:
                 a = (item[0], item[1])
                 lockedPosition[a] = currentBlock.color
+                if checkLost(lockedPosition):
+                    running = False
             currentBlock = nextBlock
             nextBlock = createBlock(shapes, colors)
         draw_everything(win, grid, ROWS, COLUMNS)
+        draw_nextBlock(win, nextBlock, grid)
+        pygame.display.update()
            
     pygame.quit()
 
