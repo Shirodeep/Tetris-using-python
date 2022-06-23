@@ -1,4 +1,3 @@
-from turtle import right
 import pygame
 import random
 
@@ -254,8 +253,11 @@ def checkValidPosition(grid,currentBlock):
                 return False
     return True
 
-def deleteRows():
-    pass
+def deleteRows(lockedPosition):
+    
+    for i in range(20):
+        for i in range(10):
+            pass
 
 def checkScore(win, grid, score):
     font  = pygame.font.Font("freesansbold.ttf", 24)
@@ -266,9 +268,9 @@ def checkScore(win, grid, score):
     pygame.display.update()
 
 # To check if lost or not
-def checkLost(dict):
-    for i, item in dict:
-        if dict[(5, 0)] != (0,0,0):
+def checkLost(lockedPosition):
+    for item in lockedPosition:
+        if item[1] < 1:
             return True
     return False
 
@@ -280,7 +282,6 @@ def draw_nextBlock(win, nextBlock, grid):
     win.blit(text, textRect)
     shape = getShape(nextBlock)
     for item in shape:
-        print(item)
         pygame.draw.rect(win, nextBlock.color, ((item[0] + 9) * BLOCKWIDTH, (item[1] + 8) * BLOCKWIDTH, BLOCKWIDTH - 1, BLOCKWIDTH - 1))
 
 # Main Function That Runs First
@@ -298,7 +299,6 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
     score = 0
     while running:
         grid =createSpace(ROWS,COLUMNS, lockedPosition)
-        currentFormatedBlock = getShape(currentBlock)
         fallTime += clock.get_rawtime()
         clock.tick()
         if fallTime / 1000 > fallSpeed and currentBlock.fall:
@@ -327,6 +327,9 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
                     currentBlock.x -= 1
                     if not(checkValidPosition(grid,currentBlock)):
                         currentBlock.x += 1
+
+        currentFormatedBlock = getShape(currentBlock)
+
         for i in range(len(currentFormatedBlock)):
             x, y = currentFormatedBlock[i] 
             if y > -1:
@@ -334,18 +337,20 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
         for item in currentFormatedBlock:
             if item[1] >= ROWS - 1:
                 currentBlock.fall = False
-            # if grid[item[1] + 1][item[0]] != (0, 0, 0):
-                # currentBlock.fall = False 
+        # if checkLost(lockedPosition):
+            # running = False
         if not currentBlock.fall:
             score += 1
-            checkScore(win, grid, score)
             for item in currentFormatedBlock:
                 a = (item[0], item[1])
                 lockedPosition[a] = currentBlock.color
-                if checkLost(lockedPosition):
-                    running = False
+            if checkLost(lockedPosition):
+                running = False
             currentBlock = nextBlock
             nextBlock = createBlock(shapes, colors)
+            if deleteRows(lockedPosition):
+                score += 10 
+        checkScore(win, grid, score)
         draw_everything(win, grid, ROWS, COLUMNS)
         draw_nextBlock(win, nextBlock, grid)
         pygame.display.update()
