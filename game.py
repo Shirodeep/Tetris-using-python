@@ -26,6 +26,7 @@ BLUE = (100,149,237)            #for game bocks
 ORCHID = (153,50,204)           #for game bocks
 SEAGREEN = (180,238,180)        #for game bocks
 GRAY = (161, 161, 161)        # For grid lines
+MAROON = (128,0,0)
 
 # Shapes
 
@@ -207,7 +208,7 @@ def createSpace(rows, columns, lockedPosition):
         for j in range(len(space[i])):
             if (j, i) in lockedPosition:
                 value = lockedPosition[(j, i)]
-                space[i][j] = value    
+                space[i][j] = value
     return space
 
 def getRandom(value):
@@ -230,7 +231,7 @@ def getShape(block):
     return formate
 
 def draw_everything(win, grid, rows, columns):
-    win.fill((128,0,0))
+    win.fill(MAROON)
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             pygame.draw.rect(win, grid[i][j], (startValue_x + j * BLOCKWIDTH, startValue_y + i * BLOCKWIDTH, BLOCKWIDTH, BLOCKWIDTH))
@@ -253,11 +254,28 @@ def checkValidPosition(grid,currentBlock):
                 return False
     return True
 
-def deleteRows(lockedPosition):
-    
-    for i in range(20):
-        for i in range(10):
-            pass
+def deleteRows(lockedPosition, grid):
+    toFall = {}
+    booleans = False
+    count = 0
+    place = 0
+    for i in range(len(grid) - 1, -1, -1):
+        row = grid[i]
+        # print(row)
+        if (0,0,0) not in row: 
+            booleans = True
+            count += 1
+            place = i
+            for j in range(len(grid[i]) - 1, -1, -1):
+                del lockedPosition[(j,i)]
+    toFall = lockedPosition
+    if count > 0:
+        for item in list(lockedPosition):
+            x, y = item
+            if y < place:
+                key = (x, y + 1)
+                lockedPosition[key] = lockedPosition.pop(item)
+    return booleans
 
 def checkScore(win, grid, score):
     font  = pygame.font.Font("freesansbold.ttf", 24)
@@ -274,7 +292,7 @@ def checkLost(lockedPosition):
             return True
     return False
 
-def draw_nextBlock(win, nextBlock, grid):
+def draw_nextBlock(win, nextBlock):
     font  = pygame.font.Font("freesansbold.ttf", 24)
     text = font.render("NEXT SHAPE", True, (0,0,0),(0, 12, 213) )
     textRect = text.get_rect()
@@ -284,8 +302,24 @@ def draw_nextBlock(win, nextBlock, grid):
     for item in shape:
         pygame.draw.rect(win, nextBlock.color, ((item[0] + 9) * BLOCKWIDTH, (item[1] + 8) * BLOCKWIDTH, BLOCKWIDTH - 1, BLOCKWIDTH - 1))
 
+def forDisplayOfText(win, text, color, backgroundColor, font, startPoint, endPoint):
+    font = pygame.font.Font("freesansbold.ttf", font)
+    text = font.render(text, True, color, backgroundColor)
+    textRect = text.get_rect()
+    textRect.center = (startPoint, endPoint)
+    win.blit(text, textRect)
+
+def displayTheTitle(win):
+    win.fill(MAROON)
+    forDisplayOfText(win, "WELCOME TO TETRIS GAME", (0,0,0), MAROON, 26, 250, 200)
+    forDisplayOfText(win, "PRESS \'S\' TO PLAY", GRAY, MAROON, 26, 250, 250)
+    forDisplayOfText(win, "PRESS \'Q\' TO EXIT", GRAY, MAROON, 26, 250, 300)
+    forDisplayOfText(win, "ARROW KEY TO CHANGE AND MOVE BLOCK", GRAY, MAROON, 20, 250, 350)
+    pygame.display.update()
+
+
 # Main Function That Runs First
-def main(win, gameWidth, gameLength, startValue_x, startValue_y):
+def main(win):
     ROWS = 20
     COLUMNS = 10
     shapes = [Z, L, I, T, O, S, J]
@@ -327,6 +361,8 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
                     currentBlock.x -= 1
                     if not(checkValidPosition(grid,currentBlock)):
                         currentBlock.x += 1
+                if event.key == pygame.K_t:
+                    pygame.time.delay(10000000)
 
         currentFormatedBlock = getShape(currentBlock)
 
@@ -348,13 +384,27 @@ def main(win, gameWidth, gameLength, startValue_x, startValue_y):
                 running = False
             currentBlock = nextBlock
             nextBlock = createBlock(shapes, colors)
-            if deleteRows(lockedPosition):
+            deleted = deleteRows(lockedPosition, grid)
+            if deleted:
                 score += 10 
         checkScore(win, grid, score)
         draw_everything(win, grid, ROWS, COLUMNS)
-        draw_nextBlock(win, nextBlock, grid)
+        draw_nextBlock(win, nextBlock)
         pygame.display.update()
-           
     pygame.quit()
 
-main(WIN, GAMEWIDTH, GAMELENGTH, startValue_x, startValue_y)
+def firstMain(win):
+    running = True
+    while running:
+        displayTheTitle(win)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    main(win)
+                if event.key == pygame.K_q:
+                    running = False
+    pygame.display.quit()
+
+firstMain(WIN)
