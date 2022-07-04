@@ -255,7 +255,6 @@ def checkValidPosition(grid,currentBlock):
     return True
 
 def deleteRows(lockedPosition, grid):
-    toFall = {}
     booleans = False
     count = 0
     place = 0
@@ -268,14 +267,13 @@ def deleteRows(lockedPosition, grid):
             place = i
             for j in range(len(grid[i]) - 1, -1, -1):
                 del lockedPosition[(j,i)]
-    toFall = lockedPosition
     if count > 0:
         for item in list(lockedPosition):
             x, y = item
             if y < place:
-                key = (x, y + 1)
+                key = (x, y + count)
                 lockedPosition[key] = lockedPosition.pop(item)
-    return booleans
+    return booleans, count
 
 def checkScore(win, grid, score):
     font  = pygame.font.Font("freesansbold.ttf", 24)
@@ -311,7 +309,7 @@ def forDisplayOfText(win, text, color, backgroundColor, font, startPoint, endPoi
 
 def displayTheTitle(win):
     win.fill(MAROON)
-    forDisplayOfText(win, "WELCOME TO TETRIS GAME", (0,0,0), MAROON, 26, 250, 200)
+    forDisplayOfText(win, "WELCOME TO TETRIS GAME", (0,0,0), MAROON, 34, 250, 200)
     forDisplayOfText(win, "PRESS \'S\' TO PLAY", GRAY, MAROON, 26, 250, 250)
     forDisplayOfText(win, "PRESS \'Q\' TO EXIT", GRAY, MAROON, 26, 250, 300)
     forDisplayOfText(win, "ARROW KEY TO CHANGE AND MOVE BLOCK", GRAY, MAROON, 20, 250, 350)
@@ -343,7 +341,7 @@ def main(win):
                 currentBlock.fall = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                pygame.display.quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     currentBlock.rotation += 1
@@ -373,8 +371,6 @@ def main(win):
         for item in currentFormatedBlock:
             if item[1] >= ROWS - 1:
                 currentBlock.fall = False
-        # if checkLost(lockedPosition):
-            # running = False
         if not currentBlock.fall:
             score += 1
             for item in currentFormatedBlock:
@@ -384,14 +380,19 @@ def main(win):
                 running = False
             currentBlock = nextBlock
             nextBlock = createBlock(shapes, colors)
-            deleted = deleteRows(lockedPosition, grid)
+            deleted, count = deleteRows(lockedPosition, grid)
             if deleted:
-                score += 10 
+                score += count * 2
+                fallSpeed -= 0.01
         checkScore(win, grid, score)
         draw_everything(win, grid, ROWS, COLUMNS)
         draw_nextBlock(win, nextBlock)
         pygame.display.update()
-    pygame.quit()
+    win.fill(MAROON)
+    forDisplayOfText(win, "YOU LOST", (0,0,0), MAROON, 40, 250, 200)
+    forDisplayOfText(win, f"Your score: {score}", (0,0,0), MAROON, 26, 250, 250)
+    pygame.display.update()
+    pygame.time.delay(4000)
 
 def firstMain(win):
     running = True
